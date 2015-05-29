@@ -33,14 +33,25 @@ RUN yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel; \
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0
 USER jboss
 
+#The port that hawkular metrics exposes its endpoint on.
+ENV HAWKULAR_METRICS_ENDPOINT_PORT 8080
+
 # Port 8080 is the http endpoint for interacting with Hawkular-Metrics
-EXPOSE 8080
+EXPOSE $HAWKULAR_METRICS_ENDPOINT_PORT
 
 # The Hawkular Metrics version
-ENV HAWKULAR_METRICS_VERSION 0.3.4-SNAPSHOT
+ENV HAWKULAR_METRICS_VERSION 0.3.4
 
 # Get and copy the hawkular metrics war to the EAP deployment directory
 RUN cd $JBOSS_HOME/standalone/deployments/ && \
-    curl -Lo hawkular-metrics-api-jaxrs.war https://origin-repository.jboss.org/nexus/service/local/artifact/maven/content?r=public\&g=org.hawkular\&a=hawkular-metrics-api-jaxrs\&e=war&v=${HAWKULAR_METRICS_VERSION}
+    curl -Lo hawkular-metrics-api-jaxrs.war https://origin-repository.jboss.org/nexus/service/local/artifact/maven/content?r=public\&g=org.hawkular.metrics\&a=hawkular-metrics-api-jaxrs\&e=war\&v=${HAWKULAR_METRICS_VERSION}
+
+# Copy the hawkular kubernetes scripts
+ENV HAWKULAR_METRICS_SCRIPT_DIRECTORY /opt/hawkular/scripts/
+COPY hawkular-metrics-poststart.sh $HAWKULAR_METRICS_SCRIPT_DIRECTORY
+COPY hawkular-metrics-liveness.sh $HAWKULAR_METRICS_SCRIPT_DIRECTORY
+
+# Overwrite the welcome-content to display a more appropriate status page
+COPY welcome-content $JBOSS_HOME/welcome-content/
 
 CMD $JBOSS_HOME/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dhawkular-metrics.cassandra-nodes=hawkular-cassandra -Dhawkular-metrics.backend=cass
