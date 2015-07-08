@@ -40,7 +40,7 @@ ENV HAWKULAR_METRICS_ENDPOINT_PORT 8080
 EXPOSE $HAWKULAR_METRICS_ENDPOINT_PORT
 
 # The Hawkular Metrics version
-ENV HAWKULAR_METRICS_VERSION 0.3.4
+ENV HAWKULAR_METRICS_VERSION 0.5.0-SNAPSHOT
 
 # Get and copy the hawkular metrics war to the EAP deployment directory
 RUN cd $JBOSS_HOME/standalone/deployments/ && \
@@ -54,4 +54,11 @@ COPY hawkular-metrics-liveness.sh $HAWKULAR_METRICS_SCRIPT_DIRECTORY
 # Overwrite the welcome-content to display a more appropriate status page
 COPY welcome-content $JBOSS_HOME/welcome-content/
 
-CMD $JBOSS_HOME/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dhawkular-metrics.cassandra-nodes=hawkular-cassandra -Dhawkular-metrics.backend=cass
+# Change the permissions so that the user running the image can start up Hawkular Metrics
+# TODO: we can probably remove this once we get a new base image designed to work with OpenShift v3 1.0.0
+USER root
+RUN chmod -R 777 /opt
+
+USER jboss
+
+CMD $JBOSS_HOME/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dhawkular-metrics.cassandra-nodes=hawkular-cassandra

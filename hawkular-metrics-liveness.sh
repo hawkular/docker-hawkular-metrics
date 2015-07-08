@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-STATUS_URL=http://$HOSTNAME:$HAWKULAR_METRICS_ENDPOINT_PORT/hawkular/metrics/status
+STATUS_URL=http://localhost:$HAWKULAR_METRICS_ENDPOINT_PORT/hawkular/metrics/status
 STATUS_CODE=`curl -L -s -o /dev/null -w "%{http_code}" $STATUS_URL`
 
 if [ $STATUS_CODE -eq 200 ]; then
